@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:grpcsampleclient/generated/game.pb.dart';
+import 'package:grpcsampleclient/main.dart';
+import 'package:grpcsampleclient/screen/detail_screen.dart';
+import 'package:grpcsampleclient/store/fetch_data_store.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final reviews = context.select((FetchDataStore store) => store.gameReviews);
+    print(reviews);
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.only(left: 20, top: 50, right: 20),
@@ -23,9 +31,10 @@ class HomeScreen extends StatelessWidget {
             _buildSearchBar(),
             SizedBox(height: 16),
             const Text(
-              "新着",
+              "新着ゲーム",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
             ),
+            _buildNewGameList(reviews),
           ],
         ),
       ),
@@ -65,6 +74,34 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(color: Colors.grey),
             ),
           ],
+        ),
+      );
+
+  Widget _buildNewGameList(GameReviews reviews) => Expanded(
+        child: StaggeredGridView.countBuilder(
+          crossAxisCount: 2,
+          itemCount: reviews.games.length,
+          crossAxisSpacing: 20,
+          mainAxisSpacing: 20,
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.detail,
+                    arguments: DetailArgs(reviews.games[index]));
+              },
+              child: Container(
+                height: 250,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Image.network(
+                  reviews.games[index].imageUrl,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          },
+          staggeredTileBuilder: (index) => StaggeredTile.fit(1),
         ),
       );
 }
